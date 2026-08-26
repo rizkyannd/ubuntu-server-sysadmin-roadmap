@@ -4,7 +4,7 @@ A hands-on 12-step Ubuntu Server sysadmin roadmap — networking, security, web 
 
 | No | Step | Dokumentasi |
 |----|------|-------------|
-| 1 | Install Ubuntu Server dari nol | [01-install-ubuntu-server](./01-install-ubuntu-server/) |
+| 1 | Install Ubuntu Server dari nol | [01-install-ubuntu-server](./01-install-ubuntu-server.md/) |
 | 2 | Configure static IP & networking | [02-static-ip-networking](./02-static-ip-networking/) |
 | 3 | Setup & manage SSH keys | [03-ssh-keys](./03-ssh-keys/) |
 | 4 | Configure firewall rules properly | [04-firewall-rules](./04-firewall-rules/) |
