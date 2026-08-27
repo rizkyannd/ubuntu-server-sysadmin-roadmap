@@ -1,4 +1,4 @@
-# Step 2: Configure Static IP & Networking
+# Configure Static IP & Networking
 
 ## 🎯 Tujuan
 Mengonfigurasi static IP pada interface jaringan Ubuntu Server menggunakan Netplan, serta memahami tools dasar untuk diagnosa dan monitoring koneksi jaringan.
@@ -9,15 +9,9 @@ Mengonfigurasi static IP pada interface jaringan Ubuntu Server menggunakan Netpl
 - **Netplan version:** 2
 
 ## 📋 Konfigurasi Netplan
-### 1. Cek nama interface
-   jalankan `ip a` untuk lihat nama interface jaringan kamu (biasanya `enp0s3`, atau `eth0`, atau     semacam nya)
-### 2. Cari file konfigurasi netplan
-   Cek dengan `ls /etc/netplan`. Biasanya bernama `00-installer-config.yaml` atau `cloud-init.yaml`
+**File konfigurasi:** `/etc/netplan/00-installer-config.yaml`
 
-File konfigurasi: `/etc/netplan/00-installer-config.yaml` (nama file bisa beda, sesuaikan)
-### 3. Edit file YAML
-
-Berikut config awal (masih DHCP, dibuat otomatis oleh 'subiquity' saat instalasi):
+Config awal (default DHCP, dibuat otomatis oleh `subiquity` saat instalasi):
 ```yaml
 # This is the network config written by 'subiquity'
 network:
@@ -31,14 +25,15 @@ network:
   version: 2
 ```
 
-> ⚠️ **TODO:** Tambahkan konfigurasi static IP final di sini (contoh format di bawah)
+
+Config final (static IP):
 ```yaml
 network:
   ethernets:
     enp0s3:
       dhcp4: no
-      addresses: [192.168.x.x/24]
-      gateway4: 192.168.x.1
+      addresses: [192.168.1.73/24]
+      gateway4: 192.168.1.1
       nameservers:
         addresses: [8.8.8.8, 8.8.4.4]
       match:
@@ -47,7 +42,7 @@ network:
   version: 2
 ```
 
-Setelah edit file, apply dengan:
+Diterapkan dengan:
 ```bash
 sudo netplan apply
 ```
@@ -70,4 +65,10 @@ ping -c 4 8.8.8.8        # Tes konektivitas ke internet
 ```
 
 ## 🧩 Catatan
-Config Netplan awal masih menggunakan DHCP (default hasil instalasi). *(Tambahkan cerita singkat proses mengubahnya ke static IP, kendala yang ditemui, dan hasil akhirnya di sini.)*
+Config Netplan awal masih menggunakan DHCP (default hasil instalasi). Proses perubahan ke static IP berjalan lancar tanpa kendala teknis. 
+
+Namun ditemukan pemahaman baru: static IP (`192.168.1.73`) yang di-set berdasarkan gateway WiFi rumah hanya berfungsi selama VM terhubung ke jaringan yang sama. Saat mencoba menghubungkan VirtualBox ke jaringan hotspot HP (subnet berbeda), koneksi SSH gagal karena IP dan gateway yang di-set tidak sesuai dengan subnet jaringan hotspot tersebut. Ini memperjelas bahwa static IP terikat pada satu jaringan spesifik, berbeda dengan DHCP yang otomatis menyesuaikan saat berpindah jaringan.
+
+
+## 📸 Screenshot
+<img width="1282" height="854" alt="image" src="https://github.com/user-attachments/assets/bcc9f618-2b1d-40ad-b336-0bac6b4771b4" />
