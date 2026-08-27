@@ -5,12 +5,17 @@ Mengonfigurasi static IP pada interface jaringan Ubuntu Server menggunakan Netpl
 
 ## 🛠️ Environment
 - **Interface:** enp0s3
-- **MAC Address:** 08:00:27:b6:d2:56
+- **MAC Address:** 08:00:27:xx:xx:xx
 - **Netplan version:** 2
 
 ## 📋 Konfigurasi Netplan
+### 1. Cek nama interface
+   jalankan `ip a` untuk lihat nama interface jaringan kamu (biasanya `enp0s3`, atau `eth0`, atau     semacam nya)
+### 2. Cari file konfigurasi netplan
+   Cek dengan `ls /etc/netplan`. Biasanya bernama `00-installer-config.yaml` atau `cloud-init.yaml`
 
 File konfigurasi: `/etc/netplan/00-installer-config.yaml` (nama file bisa beda, sesuaikan)
+### 3. Edit file YAML
 
 Berikut config awal (masih DHCP, dibuat otomatis oleh 'subiquity' saat instalasi):
 ```yaml
@@ -21,12 +26,12 @@ network:
       dhcp4: yes
       dhcp6: yes
       match:
-        macaddress: 08:00:27:b6:d2:56
+        macaddress: 08:00:27:xx:xx:xx
       set-name: enp0s3
   version: 2
 ```
 
-> ⚠️ **TODO:** Tambahkan konfigurasi static IP final di sini (contoh format di bawah), lalu jelaskan IP/gateway/DNS yang dipakai.
+> ⚠️ **TODO:** Tambahkan konfigurasi static IP final di sini (contoh format di bawah)
 ```yaml
 network:
   ethernets:
@@ -37,7 +42,7 @@ network:
       nameservers:
         addresses: [8.8.8.8, 8.8.4.4]
       match:
-        macaddress: 08:00:27:b6:d2:56
+        macaddress: 08:00:27:xx:xx:xx
       set-name: enp0s3
   version: 2
 ```
