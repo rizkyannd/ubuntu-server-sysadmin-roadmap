@@ -1,4 +1,4 @@
-# Step 1: Install Ubuntu Server dari Nol
+# Install Ubuntu Server dari Nol
 
 ## 🎯 Tujuan
 Menginstal Ubuntu Server dari awal (bare OS) di lingkungan virtual VirtualBox, sebagai fondasi untuk seluruh konfigurasi lanjutan di roadmap ini — networking, SSH, firewall, dan seterusnya.
