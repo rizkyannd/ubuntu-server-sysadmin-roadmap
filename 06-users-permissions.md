@@ -11,8 +11,8 @@ Step ini saya lakuin buat latihan ngatur akses multi-user di server — bikin us
 
 **1. Bikin user & group baru:**
 ```bash
-sudo adduser nama-user-baru
-sudo addgroup nama-group-baru
+sudo adduser budi
+sudo addgroup mahasiswa
 ```
 
 **2. Cek user & group yang terdaftar:**
@@ -25,8 +25,8 @@ cut -d: -f1 /etc/group
 
 **3. Masukin/keluarin user dari group:**
 ```bash
-sudo usermod -aG nama-group nama-user
-sudo deluser nama-user nama-group
+sudo usermod -aG mahasiswa budi
+sudo deluser budi mahasiswa
 ```
 
 **4. Hapus user & group:**
@@ -62,7 +62,9 @@ Awal belajar, saya sering lupa/ketuker mana yang `r`, `w`, `x` pas dikonversi ke
 **2. Ketuker urutan argumen di `usermod -aG`**
 Command `sudo usermod -aG NAMA_GROUP NAMA_USER` — saya berkali-kali salah nulis urutannya, kepikiran "kan mau nambahin **user** ke group, jadi user disebut duluan." Padahal urutan command-nya kebalik: **group dulu, baru user**. Karena flag `-aG` artinya "append ke Group ini", jadi argumen pertama setelah flag itu **objek yang dituju** (group), argumen kedua **subjek yang ditambahin** (user). Sekarang saya ingatnya dengan baca command-nya sebagai kalimat: "tambahkan-ke-Group [nama group] [nama user]".
 
-⚠️ **Follow-up:** belum coba skenario user yang jadi anggota banyak group sekaligus, terus salah pakai `-G` (tanpa `-a`) yang bisa bikin dia ketendang dari group lain — mau dicoba biar paham dampaknya secara langsung, bukan cuma baca teori.
-
 ## 📸 Screenshot
+<img width="1072" height="134" alt="image" src="https://github.com/user-attachments/assets/3210591a-8e82-4b86-ac27-943653c62532" />
+<img width="1079" height="259" alt="image" src="https://github.com/user-attachments/assets/15b86a96-86c2-4496-99bb-294716b6fc7e" />
+
+
 <!-- ls -l sebelum/sesudah chmod, dan output cat /etc/group sebelum/sesudah usermod -aG -->
