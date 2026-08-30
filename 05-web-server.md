@@ -1,15 +1,41 @@
 # Install & Configure Web Server (Apache/Nginx)
 
 ## 🧭 Konteks
-Setup Nginx sebagai reverse proxy di depan Apache (Apache jalan di backend port 8080, Nginx terima request dari luar). Awalnya cuma setup HTTP, terus pas dicoba akses pakai HTTPS ternyata gagal — proses ini yang jadi fokus dokumentasi ini: kenapa gagal dan gimana cara benerinnya.
+Setup web server dimulai dengan Apache standalone — akses HTTP jalan normal, tapi HTTPS gagal karena SSL belum diaktifkan. Setelah itu berhasil dibenerin, lanjut ke tahap kedua: pasang Nginx sebagai reverse proxy di depan Apache (Apache pindah ke backend port 8080), dan ternyata masalah SSL serupa muncul lagi di sisi Nginx — perlu di-setup ulang dari awal khusus untuk Nginx.
 
 ## 🛠️ Environment
 - **OS:** Ubuntu Server
-- **Web server:** Apache (backend, port 8080) + Nginx (reverse proxy)
+- **Web server:** Apache2 (awalnya standalone, lalu jadi backend) + Nginx (reverse proxy)
 - **Firewall:** UFW
-- **SSL:** Self-signed certificate (OpenSSL), terpasang di sisi Nginx
+- **SSL:** Self-signed certificate, dikonfigurasi terpisah di Apache dan di Nginx
 
-## 📋 Yang Saya Praktikkan
+---
+
+## 📋 Fase 1 — Apache Standalone: HTTPS Gagal
+
+**1. Akses awal — HTTP jalan, HTTPS gagal**
+Server baru diinstall Apache default. Akses via HTTP normal, tapi begitu dicoba HTTPS, muncul error — SSL module Apache belum aktif sama sekali.
+
+**2. Enable module SSL:**
+```bash
+sudo a2enmod ssl
+```
+
+**3. Aktifkan site default-ssl (config listen 443):**
+```bash
+sudo a2ensite default-ssl
+```
+
+**4. Restart Apache:**
+```bash
+sudo systemctl restart apache2
+```
+
+Setelah ini, akses HTTPS ke Apache berhasil.
+
+---
+
+## 📋 Fase 2 — Setup Nginx Reverse Proxy (Apache Jadi Backend)
 
 **1. Install Nginx & buka akses firewall:**
 ```bash
@@ -18,34 +44,7 @@ sudo ufw allow 'Nginx HTTP'
 systemctl status nginx
 ```
 
-**2. Bikin config reverse proxy (HTTP dulu):**
-```bash
-sudo nano /etc/nginx/sites-available/[nama-file]
-```
-```nginx
-server {
-    listen 80;
-    listen [::]:80;
-    server_name [ip-address-server];
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        include proxy_params;
-    }
-}
-```
-
-**3. Aktifkan config & reload:**
-```bash
-sudo ln -s /etc/nginx/sites-available/[nama-file] /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
-```
-Di titik ini, akses **HTTP** ke server sudah berhasil.
-
-**4. Coba akses HTTPS — gagal**
-Belum ada listener untuk port 443 sama sekali di config Nginx, jadi request HTTPS nggak ada yang handle.
-
-**5. Bikin folder & generate self-signed certificate:**
+**2. Bikin folder & generate self-signed certificate khusus Nginx:**
 ```bash
 sudo mkdir -p /etc/nginx/ssl
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
@@ -53,7 +52,7 @@ sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -out /etc/nginx/ssl/nginx-selfsigned.crt
 ```
 
-**6. Update config: tambahkan server block untuk port 443:**
+**3. Bikin config reverse proxy (HTTP dulu):**
 ```bash
 sudo nano /etc/nginx/sites-available/nginx-proxy
 ```
@@ -80,48 +79,46 @@ server {
 }
 ```
 
-**7. Test config & reload:**
+**4. Aktifkan config & reload:**
+```bash
+sudo ln -s /etc/nginx/sites-available/nginx-proxy /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+**5. Test config & reload:**
 ```bash
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-**8. Verifikasi firewall:**
+**6. Verifikasi firewall:**
 ```bash
 sudo ufw status verbose
 ```
 
 ## 🧩 Catatan
-Awalnya HTTPS gagal total padahal HTTP jalan normal. Ternyata penyebabnya sederhana tapi sempat bikin bingung: **config Nginx yang pertama cuma punya server block untuk port 80** — belum ada `listen 443 ssl` sama sekali, jadi Nginx nggak tau harus ngapain kalau ada request masuk ke port 443. HTTP jalan karena listener-nya memang cuma disiapkan untuk itu.
+Hal menarik dari proses ini: masalah SSL yang saya benerin di Apache (Fase 1) ternyata nggak otomatis "nurun" ke Nginx, meskipun keduanya jalan di server yang sama. Di Fase 1, saya benerin SSL Apache pakai a2enmod ssl + a2ensite default-ssl — waktu itu saya cuma tahu Apache, belum kepikiran soal reverse proxy sama sekali, jadi SSL-nya saya tuntaskan langsung di situ.
 
-Solusinya: generate self-signed certificate pakai OpenSSL, lalu tambahkan **server block kedua** khusus untuk `listen 443 ssl` dengan `ssl_certificate` dan `ssl_certificate_key` mengarah ke file cert yang baru dibuat. SSL di sini dihandle sepenuhnya di sisi Nginx (SSL termination) — Apache di backend tetap komunikasi biasa lewat HTTP di port 8080, nggak perlu tau soal SSL sama sekali. Ini pola umum di reverse proxy setup: proxy yang urus enkripsi, backend fokus urus aplikasi.
+Begitu saya belajar konsep reverse proxy dan pasang Nginx di depan Apache, saya baru paham Nginx butuh certificate dan config SSL-nya sendiri dari nol — nggak bisa "pinjam" dari SSL yang udah aktif di Apache. Kali ini saya coba lakuin dengan urutan yang lebih rapi: generate self-signed certificate dulu pakai OpenSSL, baru tulis config Nginx dengan kedua server block (port 80 dan port 443) sekaligus dalam satu file. Karena cert-nya udah tersedia duluan sebelum config di-reload, nginx -t langsung valid dan HTTP maupun HTTPS dua-duanya langsung jalan begitu Nginx di-reload.
 
-⚠️ **Follow-up:** karena pakai self-signed cert (bukan dari CA resmi kayak Let's Encrypt), browser/curl bakal warning "not trusted" tiap akses HTTPS — perlu tambahin flag `-k` di curl buat testing, atau accept warning manual di browser. Belum coba ganti ke Let's Encrypt buat hilangin warning ini.
+Insight-nya: di arsitektur reverse proxy, SSL termination biasanya dipegang oleh layer paling depan (di sini Nginx) — komunikasi Nginx ke Apache di backend (port 8080) tetap plain HTTP internal. Jadi config SSL yang saya pasang di Apache pas Fase 1 sebenarnya jadi nggak kepake lagi dari sudut pandang client, karena client sekarang ngobrol sama Nginx, bukan langsung ke Apache. Kalau saya udah paham konsep ini dari awal, mungkin nggak perlu buang waktu setup SSL di Apache standalone dulu — tapi karena Fase 1 saya lakuin sebelum kepikiran pasang reverse proxy, jadi kejadian aja, dan justru dari situ saya belajar perbedaan peran SSL di tiap layer.
+
+⚠️ Follow-up: karena Apache SSL config Fase 1 udah nggak relevan (redundant) di setup akhir, belum sempat dicek apakah lebih baik di-disable aja modul SSL-nya di Apache, atau dibiarkan standby buat jaga-jaga kalau suatu saat akses ke Apache langsung diperlukan lagi.
 
 ## 📸 Screenshot
-**1. `systemctl status nginx` setelah install:**
-<img width="1050" height="355" alt="image" src="https://github.com/user-attachments/assets/cbb7aac8-c2dc-44ca-ba5a-df70c76506db" />
+**1. Output a2enmod ssl + a2ensite default-ssl (Apache)**
+<img width="1071" height="853" alt="image" src="https://github.com/user-attachments/assets/9b1df7c0-dae5-4211-8867-f00f90c6b1cc" />
 
-<!-- ss -->
+**2. Akses HTTPS ke apache berhasil:**
+<img width="953" height="1026" alt="image" src="https://github.com/user-attachments/assets/01218c60-ad69-4fd2-bfed-8a8051f0423b" />
 
-**2. Akses HTTP berhasil (curl atau browser):**
-<img width="1050" height="700" alt="image" src="https://github.com/user-attachments/assets/1944c230-720e-4dc3-8a94-20627ca99909" />
+**3. `systemctl status nginx`:**
+<img width="1057" height="359" alt="image" src="https://github.com/user-attachments/assets/86e7cf47-9ebd-426d-8917-e93d60bb7309" />
 
-<!-- ss -->
+**4. Nginx -t:**
+<img width="1071" height="151" alt="image" src="https://github.com/user-attachments/assets/c6badf2c-be15-4ff7-ae5c-47f500c4c2c8" />
 
-**3. 🔍 Akses HTTPS gagal — sebelum cert dibuat:**
-<!-- ss error message -->
 
-**4. Proses `openssl req` generate certificate:**
-<!-- ss -->
-
-**5. `nginx -t` — konfirmasi config valid setelah tambah server block 443:**
-<!-- ss -->
-
-**6. 🔍 Akses HTTPS berhasil setelah cert terpasang (dengan warning not trusted):**
-<!-- ss -->
-
-**7. `ufw status verbose` — konfirmasi port yang di-allow:**
-<img width="1050" height="300" alt="image" src="https://github.com/user-attachments/assets/55170e97-62bb-4574-8bc6-1ca880d23402" />
-
-<!-- ss -->
+**5. UFW status verbose:**
+<img width="1066" height="269" alt="image" src="https://github.com/user-attachments/assets/e268dba6-4113-44db-ad5d-a3761ff47256" />
