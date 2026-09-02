@@ -15,19 +15,16 @@ sudo adduser budi
 sudo addgroup mahasiswa
 ```
 
-**2. Cek user & group yang terdaftar:**
-```bash
-cat /etc/passwd
-cut -d: -f1 /etc/passwd
-cat /etc/group
-cut -d: -f1 /etc/group
-```
-
-**3. Masukin/keluarin user dari group:**
+**2. Masukin user ke group:**
 ```bash
 sudo usermod -aG mahasiswa budi
-sudo deluser budi mahasiswa
 ```
+
+**3. Verifikasi user masuk ke group:**
+```bash
+cat /etc/group | grep budi
+```
+Hasil: `budi` tercatat di group `mahasiswa`.
 
 **4. Hapus user & group:**
 ```bash
@@ -35,12 +32,13 @@ sudo deluser nama-user
 sudo groupdel nama-group
 ```
 
-**5. Ubah permission & ownership:**
+**5. Ubah permission & ownership (contoh pada folder `tugas`):**
 ```bash
-sudo chmod -R 777 nama-file-atau-folder
-sudo chmod ugo+rwx nama-file-atau-folder
-sudo chown kaks:mahasiswa ubsi
+sudo chmod -R 777 tugas
+sudo chmod ugo+rwx tugas
+sudo chown kaks:mahasiswa tugas
 ```
+> `chmod 777` dipakai di sini buat demonstrasi permission paling longgar (owner/group/others full access). Bukan konfigurasi yang dipakai di produksi — untuk shared folder yang lebih realistis, `750` atau `770` lebih sesuai.
 
 **6. Sticky bit:**
 ```bash
@@ -51,7 +49,7 @@ sudo chmod -t nama-folder
 
 ## ⚙️ Verifikasi
 ```bash
-ls -l nama-file-atau-folder
+ls -l tugas
 ```
 
 ## 🧩 Catatan — Hal yang Bikin Saya Bingung
@@ -63,8 +61,11 @@ Awal belajar, saya sering lupa/ketuker mana yang `r`, `w`, `x` pas dikonversi ke
 Command `sudo usermod -aG NAMA_GROUP NAMA_USER` — saya berkali-kali salah nulis urutannya, kepikiran "kan mau nambahin **user** ke group, jadi user disebut duluan." Padahal urutan command-nya kebalik: **group dulu, baru user**. Karena flag `-aG` artinya "append ke Group ini", jadi argumen pertama setelah flag itu **objek yang dituju** (group), argumen kedua **subjek yang ditambahin** (user). Sekarang saya ingatnya dengan baca command-nya sebagai kalimat: "tambahkan-ke-Group [nama group] [nama user]".
 
 ## 📸 Screenshot
-<img width="1072" height="134" alt="image" src="https://github.com/user-attachments/assets/3210591a-8e82-4b86-ac27-943653c62532" />
-<img width="1079" height="259" alt="image" src="https://github.com/user-attachments/assets/15b86a96-86c2-4496-99bb-294716b6fc7e" />
 
+**1. `cat /etc/group | grep budi` — verifikasi `budi` masuk ke group `mahasiswa`:**
+<img width="1287" height="151" alt="image" src="https://github.com/user-attachments/assets/c6322228-8ae8-4e9c-afca-6785c82a6dd5" />
+
+**2. `ls -l` sebelum & sesudah `chmod 777 tugas` — permission folder berubah:**
+<img width="1079" height="259" alt="image" src="https://github.com/user-attachments/assets/15b86a96-86c2-4496-99bb-294716b6fc7e" />
 
 <!-- ls -l sebelum/sesudah chmod, dan output cat /etc/group sebelum/sesudah usermod -aG -->
