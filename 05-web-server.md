@@ -107,18 +107,18 @@ Insight-nya: di arsitektur reverse proxy, SSL termination biasanya dipegang oleh
 ⚠️ Follow-up: karena Apache SSL config Fase 1 udah nggak relevan (redundant) di setup akhir, belum sempat dicek apakah lebih baik di-disable aja modul SSL-nya di Apache, atau dibiarkan standby buat jaga-jaga kalau suatu saat akses ke Apache langsung diperlukan lagi.
 
 ## 📸 Screenshot
-**1. Output a2enmod ssl + a2ensite default-ssl (Apache)**
+**1. Output `a2enmod ssl` + `a2ensite default-ssl` (Apache):**
 <img width="1071" height="853" alt="image" src="https://github.com/user-attachments/assets/9b1df7c0-dae5-4211-8867-f00f90c6b1cc" />
 
-**2. Akses HTTPS ke apache berhasil:**
-<img width="953" height="1026" alt="image" src="https://github.com/user-attachments/assets/01218c60-ad69-4fd2-bfed-8a8051f0423b" />
-
-**3. `systemctl status nginx`:**
+**2. `systemctl status nginx`:**
 <img width="1057" height="359" alt="image" src="https://github.com/user-attachments/assets/86e7cf47-9ebd-426d-8917-e93d60bb7309" />
 
-**4. Nginx -t:**
-<img width="1071" height="151" alt="image" src="https://github.com/user-attachments/assets/c6badf2c-be15-4ff7-ae5c-47f500c4c2c8" />
+**3. `nginx -t` — config valid:**
+<img width="1278" height="145" alt="image" src="https://github.com/user-attachments/assets/5069aee9-b2cd-45e6-a199-94613a301220" />
 
-
-**5. UFW status verbose:**
+**4. `ufw status verbose`:**
 <img width="1066" height="269" alt="image" src="https://github.com/user-attachments/assets/e268dba6-4113-44db-ad5d-a3761ff47256" />
+
+**5. Akses HTTPS ke Nginx berhasil (reverse proxy meneruskan ke Apache backend):**
+<img width="953" height="1026" alt="image" src="https://github.com/user-attachments/assets/01218c60-ad69-4fd2-bfed-8a8051f0423b" />
+
