@@ -115,4 +115,11 @@ Sebelum ini saya nggak kepikiran kalau tiap command yang dijalanin itu punya "ko
 Beda dari Python yang mewajibkan indentasi sebagai bagian dari struktur kode, di bash indentation itu sifatnya opsional. Meskipun begitu saya tetap konsisten pakai indentation di script biar lebih gampang dibaca dan dipahami. Dari segi penulisan, syntax bash juga kerasa sedikit lebih teknis dibanding Python. Tapi karena logika dasarnya (variable, conditional, loop, function) udah saya kenal dari Python dan Java sebelumnya, jadi nggak terlalu kesulitan memahami cara penulisan di bash ini.
 
 ## 📸 Screenshot
-<!-- belum diisi -->
+
+**1. Perbandingan tanpa vs dengan `set -u`/`set -e` — script tanpa keduanya tetap lanjut jalan meski ada error, sementara dengan `set -u` langsung stop di baris yang bermasalah (`unbound variable`):**
+
+<img width="739" height="181" alt="image" src="https://github.com/user-attachments/assets/7e16dc45-c68a-4df3-9728-be212d73c508" />
+
+**2. Function `backup_folder` — input source & destination, backup `.tar.gz` berhasil dibuat (diverifikasi lewat `ls -l`):**
+
+<img width="662" height="249" alt="image" src="https://github.com/user-attachments/assets/ac252602-da0a-43e8-b243-47c1cfa86465" />
