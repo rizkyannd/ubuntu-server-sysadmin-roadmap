@@ -1,4 +1,3 @@
-# Step 1: Install Ubuntu Server dari Nol
 # Install Ubuntu Server dari Nol
 
 ## 🎯 Tujuan
