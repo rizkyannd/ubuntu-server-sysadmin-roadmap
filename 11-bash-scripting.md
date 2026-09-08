@@ -123,3 +123,10 @@ Beda dari Python yang mewajibkan indentasi sebagai bagian dari struktur kode, di
 **2. Function `backup_folder` — input source & destination, backup `.tar.gz` berhasil dibuat (diverifikasi lewat `ls -l`):**
 
 <img width="662" height="249" alt="image" src="https://github.com/user-attachments/assets/ac252602-da0a-43e8-b243-47c1cfa86465" />
+
+**3. Exit code (`$?`) — `mkdir` folder baru berhasil (`$? -eq 0` → pesan sukses) vs folder yang sudah ada gagal (pesan gagal):**
+
+<img width="1099" height="295" alt="image" src="https://github.com/user-attachments/assets/bd3fc558-6cf1-49e2-9462-053ae3de14a6" />
+
+
+
