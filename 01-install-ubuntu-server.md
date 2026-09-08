@@ -10,7 +10,7 @@
 
 A hands-on, 12-step Linux server administration project — built from a bare Ubuntu Server install up through networking, security, web serving, monitoring, backups, databases, automation, and custom systemd services. Each step is documented with the reasoning behind the setup, not just the commands run.
 
-This repo is a working portfolio piece on the path toward Cloud Engineering, built through System Administration and networking fundamentals.
+This repo is a practical demonstration of core System Administration competencies — provisioning, securing, monitoring, and automating a Linux server end to end.
 
 ---
 
@@ -83,4 +83,4 @@ Beyond following steps, these are the parts that involved actual troubleshooting
 
 ## Why this project
 
-Certifications show you know the theory. This repo shows the work: setting up a server, breaking things, figuring out why, and fixing them properly — the kind of hands-on troubleshooting that maps directly to real System Administration and Cloud Engineering work.
+Certifications show you know the theory. This repo shows the work: setting up a server, breaking things, figuring out why, and fixing them properly — the kind of hands-on troubleshooting that real System Administration work is made of.
