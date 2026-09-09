@@ -1,24 +1,24 @@
 # Configure Basic Database
 
-## 🧭 Konteks
-Step ini saya lakuin buat belajar dasar administrasi database pakai MariaDB — install & setup service, bikin database/user beserta hak aksesnya, operasi CRUD dasar, sampai cara backup & restore database.
+## 🧭 Context
+In this step, I learned the basics of database administration using MariaDB—ranging from installing & setting up the service, creating databases/users with specific privileges, and performing basic CRUD operations, to backing up and restoring databases.
 
 ## 🛠️ Environment
 - **OS:** Ubuntu Server
 - **Database:** MariaDB
 - **Tools:** `mysql`/`mariadb` CLI, `mysqldump`
 
-## 📋 Yang Saya Praktikkan
+## 📋 Hands-On Practice
 
-### 1. Install & setup MariaDB
+### 1. Install & Setup MariaDB
 ```bash
 sudo apt install mariadb-server -y
 sudo systemctl status mariadb
 sudo mariadb-secure-installation
 ```
-Install service, cek status jalan atau nggak, lalu konfigurasi keamanan dasar lewat wizard interaktif (`mariadb-secure-installation`).
+Installed the service, verified that it was active, and configured basic security options using the interactive `mariadb-secure-installation` wizard.
 
-### 2. Bikin database & user
+### 2. Create Database & User
 ```sql
 CREATE DATABASE mabarpay_db;
 SHOW DATABASES;
@@ -28,18 +28,18 @@ FLUSH PRIVILEGES;
 USE mabarpay_db;
 SHOW TABLES FROM mabarpay_db;
 ```
-Bikin database `mabarpay_db`, user baru (`user1`) dengan akses penuh khusus ke database itu, lalu `FLUSH PRIVILEGES` supaya perubahan langsung aktif tanpa restart service.
+Created the `mabarpay_db` database along with a new user (`user1`) granted full privileges restricted to that specific database. Executed `FLUSH PRIVILEGES` to reload permissions without restarting the service.
 
-> **Catatan keamanan:** sempat juga dicoba `GRANT ALL PRIVILEGES ON *.* TO 'user1'@'localhost';` — ini setara akses root ke semua database, bukan cuma `mabarpay_db`. Dipakai di sini cuma buat lihat efeknya, bukan konfigurasi yang saya pakai di produksi. Password `'123'` juga cuma buat demo lokal di lingkungan testing ini.
+> **Security Note:** I also tested running `GRANT ALL PRIVILEGES ON *.* TO 'user1'@'localhost';`—which grants root-equivalent access across all databases rather than restricting scope to `mabarpay_db`. This was tested strictly to observe privilege behavior, not for production use. Similarly, the password `'123'` was used purely for local testing demonstrations.
 
-### 3. Cek struktur tabel
+### 3. Inspect Table Structure
 ```sql
 SHOW TABLES;
 DESC transaksi;
 ```
-Verifikasi tabel dan struktur kolom sebelum masuk ke operasi CRUD — beda dari CRUD karena ini baca metadata/struktur, bukan isi data di dalamnya.
+Verified tables and column schemas before moving on to CRUD operations—distinct from CRUD operations because this reads structural metadata rather than table data records.
 
-### 4. Operasi CRUD
+### 4. CRUD Operations
 ```sql
 INSERT INTO transaksi (nama_pembeli, item, harga, metode_bayar)
 VALUES ('Budi Santoso', 'Mobile Legends Diamond 15000', 200000.00, 'QRIS');
@@ -56,54 +56,46 @@ UPDATE transaksi SET metode_bayar = 'DANA' WHERE nama_pembeli = 'Haris mantap';
 
 DELETE FROM transaksi WHERE nama_pembeli = 'Haris mantap';
 ```
-Praktik CRUD dasar: insert data baru, baca data dengan berbagai filter (`WHERE`, `ORDER BY`, `LIMIT`, kombinasi keduanya), update, dan hapus data di tabel `transaksi`.
+Practiced basic CRUD functionality: inserting new records, querying data using various filters (`WHERE`, `ORDER BY`, `LIMIT`, and combinations), updating existing entries, and deleting records from the `transaksi` table.
 
-### 5. Backup & restore database
+### 5. Database Backup & Restore
 ```bash
 mysqldump -u user1 -p mabarpay_db > mabarpay_db_backup.sql
 sudo mysql -e "CREATE DATABASE restore_test_db;"
 mysql -u user1 -p restore_test_db < mabarpay_db_backup.sql
 ```
-Backup database `mabarpay_db` ke file `.sql`, bikin database kosong buat simulasi restore (`restore_test_db`), lalu restore isi backup ke database itu.
+Backed up `mabarpay_db` into a `.sql` file, created a clean database (`restore_test_db`) for the restoration test, and restored the backup content into the new database.
 
-## 🧩 Catatan
+## 🧩 Key Takeaways
 
-**Modal awal dari pengalaman project sebelumnya**
+**Background Knowledge from Prior Projects**
 
-Sebelum belajar step ini, saya udah pernah coba bikin project Python yang disinkronkan ke database pakai Laragon. Jadi pas masuk materi MariaDB ini, dasar SQL-nya kerasa nggak asing lagi (mirip kalimat bahasa Inggris biasa), dan justru bikin saya lebih paham logika di balik command-command-nya secara lebih dalam, bukan cuma sekadar hafal syntax.
+Prior to this step, I had worked on a Python project synced with a local database via Laragon. Because of that experience, SQL syntax felt familiar and intuitive (resembling natural English phrasing), which helped me understand the underlying database concepts more deeply rather than just memorizing syntax.
 
-**Bingung kenapa `SHOW DATABASES` beda hasil antara user baru dan root**
+**Understanding Differences in `SHOW DATABASES` Output Between Root and Unprivileged Users**
 
-Sempat bingung kenapa pas jalanin `SHOW DATABASES` pakai `user1` (user baru yang saya buat), hasilnya beda dari pas login pakai akun root — daftar database yang muncul lebih sedikit. Ternyata `SHOW DATABASES` itu cuma nampilin database yang user tersebut punya hak akses/privilege atasnya, bukan semua database yang ada di server. Kalau user nggak dikasih permission ke suatu database, database itu nggak bakal muncul di output, meskipun database-nya beneran ada di server.
+Initially, I was confused about why executing `SHOW DATABASES` as `user1` displayed fewer databases compared to running it as `root`. I learned that `SHOW DATABASES` only lists databases that the active user has permissions to access. If a user lacks privileges for a database, system security hides it from the output list even if it exists on the server.
 
-**Alasan pakai nama `mabarpay_db`**
+**Rationale Behind the `mabarpay_db` Name**
 
-Nama database ini sengaja disamain dengan nama project Java yang sebelumnya saya buat di Apache NetBeans (`mabarpay_db`) — project itu toko pembelian diamond/UC/Robux untuk game (Free Fire, Mobile Legends, Roblox, PUBG Mobile). Tujuannya biar ke depannya bisa diintegrasikan antara project Java itu dengan praktik database yang saya pelajari di step ini.
+I intentionally named the database `mabarpay_db` to match a Java application project I previously developed in Apache NetBeans—an e-commerce store handling in-game currency purchases (Free Fire, Mobile Legends, Roblox, PUBG Mobile). This aligns the database hands-on work with potential future application integrations.
 
-## 📸 Screenshot
-**1. `apt install mariadb-server` + `systemctl status mariadb` — instalasi berhasil, service aktif dan siap menerima koneksi:**
+## 📸 Screenshots
+
+**1. `apt install mariadb-server` + `systemctl status mariadb` — installation completed, service active and ready to accept connections:**
 
 <img width="1290" height="524" alt="image" src="https://github.com/user-attachments/assets/3e299aaa-bca6-4027-81c4-d8a2e9efc838" />
 
-
-**2. `SHOW DATABASES` — root melihat 6 database, `user1` cuma melihat 3 (sesuai privilege yang diberikan):**
+**2. `SHOW DATABASES` — root views 6 databases, whereas `user1` sees only 3 (reflecting assigned user privileges):**
 
 <img width="1288" height="705" alt="image" src="https://github.com/user-attachments/assets/6671c09d-ec99-47c5-8238-098cdea5f2ae" />
 
-
-**3. `DESC transaksi` + CRUD — struktur tabel, data awal, insert data baru, dan hasil query `ORDER BY harga DESC`:**
+**3. `DESC transaksi` + CRUD operations — table structure, initial data, new record insertion, and `ORDER BY harga DESC` query output:**
 
 <img width="1287" height="628" alt="image" src="https://github.com/user-attachments/assets/8ac41436-4017-4593-a4a4-b53abf4e5684" />
 
-
-**4. `mysqldump` + restore ke `restore_test_db`, diverifikasi datanya (termasuk baris terbaru) berhasil pindah utuh:**
+**4. Executing `mysqldump` and restoring into `restore_test_db`, confirming all records (including newly inserted rows) transferred intact:**
 
 <img width="1276" height="694" alt="image" src="https://github.com/user-attachments/assets/60ef1fa6-de45-45ce-90f3-2c45b0c4c4ed" />
 
 <img width="1290" height="441" alt="image" src="https://github.com/user-attachments/assets/03fc8b01-6d85-4d43-8b4f-ad3ba784bbb8" />
-
-
-
-
-
-
