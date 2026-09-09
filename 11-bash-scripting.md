@@ -1,15 +1,15 @@
-# Write Simple Bash Script untuk Automation
+# Write Simple Bash Script for Automation
 
-## 🧭 Konteks
-Step ini saya lakuin buat belajar dasar bash scripting — mulai dari error handling, input/output, variable, conditional, loop, function, command line arguments, sampai exit code.
+## 🧭 Context
+In this step, I learned the fundamentals of Bash scripting—covering error handling, input/output, variables, conditionals, loops, functions, command-line arguments, and exit codes.
 
 ## 🛠️ Environment
 - **OS:** Ubuntu Server
 - **Tools:** `bash`, text editor (`nano`)
 
-## 📋 Yang Saya Praktikkan
+## 📋 Hands-On Practice
 
-### 1. Shebang & error handling
+### 1. Shebang & Error Handling
 ```bash
 #!/bin/bash
 set -u
@@ -17,20 +17,20 @@ set -e
 set -o pipefail
 ```
 
-### 2. Input & output
+### 2. Input & Output
 ```bash
-read -p "Masukkan username: " USERNAME
+read -p "Enter username: " USERNAME
 echo "Hello, sysadmin!"
-echo "Hallo, $USERNAME"
+echo "Hello, $USERNAME"
 ```
 
-### 3. Variable & pemanggilan
+### 3. Variables & Assignment
 ```bash
 TODAY=$(date +%Y-%m-%d)
-echo "Hari ini: $TODAY"
+echo "Today is: $TODAY"
 ```
 
-### 4. Conditional (if/elif/else)
+### 4. Conditionals (if/elif/else)
 ```bash
 DISK_USAGE=$(df / | awk 'NR==2 {print$5}' | tr -d '%')
 if [ "$DISK_USAGE" -gt 80 ]; then
@@ -42,15 +42,15 @@ else
 fi
 
 if [ -d "test/backup" ]; then
-        echo "folder backup ada"
+        echo "Backup directory exists"
 else
         mkdir -p test/backup
-        echo "folder backup dibuat"
+        echo "Backup directory created"
 fi
 ```
-Cek disk usage server dengan threshold bertingkat, dan pastikan folder backup tersedia sebelum dipakai.
+Checks the server's disk usage with multi-tiered thresholds and ensures a backup directory is available before proceeding.
 
-### 5. Loop (for & while)
+### 5. Loops (for & while)
 ```bash
 for FILE in /home/kaks/*; do
         echo "FILE - {$FILE}"
@@ -63,70 +63,67 @@ while [ $COUNT -lt 6 ]; do
 done
 ```
 
-### 6. Function
+### 6. Functions
 ```bash
 backup_folder() {
         local SOURCE=$1
         local DEST=$2
         tar -czf "$DEST/backup-$(date +%Y-%m-%d).tar.gz" "$SOURCE"
-        echo "Backup selesai: $DEST"
+        echo "Backup completed: $DEST"
 }
 
 read -p "Source backup: " sour
 read -p "Destination backup: " dest
 backup_folder "$sour" "$dest"
 ```
-Function `backup_folder` compress folder source jadi arsip `.tar.gz` di lokasi destination, nama file otomatis pakai tanggal.
+The `backup_folder` function compresses the source folder into a `.tar.gz` archive in the destination directory, automatically appending the date to the filename.
 
-### 7. Command line arguments
+### 7. Command-Line Arguments
 ```bash
-echo "Nama file     : $0"
-echo "Argument ke-1 : $1"
-echo "Argument ke-2 : $2"
-echo "Argument ke-3 : $3"
-echo "Semua argument: $@"
-echo "Jumlah argument: $#"
+echo "Filename            : $0"
+echo "Argument 1          : $1"
+echo "Argument 2          : $2"
+echo "Argument 3          : $3"
+echo "All arguments       : $@"
+echo "Argument count      : $#"
 ```
 
-### 8. Exit code
+### 8. Exit Codes
 ```bash
-read -p "Nama folder baru: " FOLDERNEW
+read -p "New directory name: " FOLDERNEW
 mkdir "$FOLDERNEW"
 if [ $? -eq 0 ]; then
-        echo "==> FOLDER '$FOLDERNEW' BERHASIL DIBUAT"
+        echo "==> DIRECTORY '$FOLDERNEW' CREATED SUCCESSFULLY"
 else
-        echo "==> GAGAL MEMBUAT FOLDER"
+        echo "==> FAILED TO CREATE DIRECTORY"
         exit 1
 fi
 ```
 
-## 🧩 Catatan
+## 🧩 Key Takeaways
 
-**Kaget ternyata bash nggak otomatis stop kalau ada error**
+**Surprised That Bash Doesn't Automatically Stop on Errors**
 
-Awalnya saya kira bash itu bakal berperilaku sama kayak Python di VSCode — kalau ada baris yang error, program otomatis berhenti dan nunjukin pesan errornya. Asumsi ini muncul karena command bash biasa (yang saya jalanin manual di terminal) emang selalu ngasih informasi kalau ada yang salah, misalnya "direktori tidak ditemukan" atau "command tidak ditemukan". Ternyata itu beda konteks — command yang saya jalanin manual di terminal memang langsung nunjukin errornya, tapi kalau dijalanin di dalam script, defaultnya bash tetap lanjut ke baris berikutnya meskipun ada command sebelumnya yang gagal. Dari situ saya baru ngerti kenapa `set -u`, `set -e`, dan `set -o pipefail` perlu ditambahin secara eksplisit di awal script.
+I originally expected Bash to behave like Python in an IDE—if a line throws an error, the program immediately halts and prints an error message. This assumption came from running manual terminal commands, which always output errors like "No such file or directory" or "command not found." However, interactive terminal sessions are a different context. While individual shell commands show errors immediately, Bash scripts default to executing subsequent lines even if a previous command fails. Realizing this helped me understand why `set -u`, `set -e`, and `set -o pipefail` need to be explicitly declared at the start of a script.
 
-**Baru tau konsep exit code (`$?`)**
+**Understanding Exit Codes (`$?`)**
 
-Sebelum ini saya nggak kepikiran kalau tiap command yang dijalanin itu punya "kode hasil" tersendiri yang bisa dicek. Awalnya bingung gimana cara tau suatu command beneran berhasil atau nggak, selain cuma liat pesan error yang muncul di layar. Ternyata ada `$?` yang nyimpen exit code dari command sebelumnya, dan yang bikin saya baru sadar itu ternyata bisa dipakai buat perkondisian (`if`/`else`) buat nentuin command apa yang dijalanin selanjutnya — misalnya kalau `mkdir` berhasil (`$? -eq 0`), baru lanjut ke command berikutnya, tapi kalau gagal, program bisa langsung `exit` atau ngasih pesan error yang lebih jelas.
+I hadn't considered that every executed command returns an exit status code that can be checked programmatically. Initially, I was unsure how to programmatically verify whether a command succeeded beyond inspecting screen output. Discovering `$?` (which stores the previous command's exit code) made it clear how to use conditional statements (`if`/`else`) to control script flow—for example, proceeding only if `mkdir` succeeds (`$? -eq 0`), or failing fast with `exit 1` and a clean error message if it fails.
 
-**Bash nggak wajib indentation**
+**Indentation is Optional in Bash**
 
-Beda dari Python yang mewajibkan indentasi sebagai bagian dari struktur kode, di bash indentation itu sifatnya opsional. Meskipun begitu saya tetap konsisten pakai indentation di script biar lebih gampang dibaca dan dipahami. Dari segi penulisan, syntax bash juga kerasa sedikit lebih teknis dibanding Python. Tapi karena logika dasarnya (variable, conditional, loop, function) udah saya kenal dari Python dan Java sebelumnya, jadi nggak terlalu kesulitan memahami cara penulisan di bash ini.
+Unlike Python, where indentation defines block structure, whitespace and indentation are optional in Bash. Despite this, maintaining clean indentation keeps scripts readable and easy to follow. Syntactically, Bash feels slightly lower-level than Python, but knowing core concepts (variables, conditionals, loops, functions) from Python and Java made picking up Bash syntax straightforward.
 
-## 📸 Screenshot
+## 📸 Screenshots
 
-**1. Perbandingan tanpa vs dengan `set -u`/`set -e` — script tanpa keduanya tetap lanjut jalan meski ada error, sementara dengan `set -u` langsung stop di baris yang bermasalah (`unbound variable`):**
+**1. Comparison without vs. with `set -u`/`set -e` — scripts without error flags continue executing after errors, while adding `set -u` halts execution immediately at the problematic line (`unbound variable`):**
 
 <img width="739" height="181" alt="image" src="https://github.com/user-attachments/assets/7e16dc45-c68a-4df3-9728-be212d73c508" />
 
-**2. Function `backup_folder` — input source & destination, backup `.tar.gz` berhasil dibuat (diverifikasi lewat `ls -l`):**
+**2. The `backup_folder` function — prompts for source & destination paths, successfully generating a `.tar.gz` archive (verified via `ls -l`):**
 
 <img width="662" height="249" alt="image" src="https://github.com/user-attachments/assets/ac252602-da0a-43e8-b243-47c1cfa86465" />
 
-**3. Exit code (`$?`) — `mkdir` folder baru berhasil (`$? -eq 0` → pesan sukses) vs folder yang sudah ada gagal (pesan gagal):**
+**3. Exit codes (`$?`) in action — successful `mkdir` for a new directory (`$? -eq 0` → success message) vs. failure when trying to create an existing directory (error message):**
 
 <img width="1099" height="295" alt="image" src="https://github.com/user-attachments/assets/bd3fc558-6cf1-49e2-9462-053ae3de14a6" />
-
-
-
