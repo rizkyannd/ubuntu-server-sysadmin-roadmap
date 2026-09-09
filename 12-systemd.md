@@ -1,15 +1,15 @@
 # Understand Systemd & Service Management
 
-## 🧭 Konteks
-Step ini saya lakuin buat belajar manajemen service di Linux pakai `systemctl` — mulai dari kontrol dasar (start/stop/restart/reload), auto-start saat boot, debugging service yang gagal, sampai bikin unit file `.service` sendiri dari nol dan menjalankannya sebagai service custom.
+## 🧭 Context
+In this step, I learned Linux service management using `systemctl`—ranging from basic control commands (start/stop/restart/reload) and enabling auto-start on boot, to debugging failed services, and creating a custom `.service` unit file from scratch to run my own process.
 
 ## 🛠️ Environment
 - **OS:** Ubuntu Server
 - **Tools:** `systemctl`, `journalctl`
 
-## 📋 Yang Saya Praktikkan
+## 📋 Hands-On Practice
 
-### 1. Kontrol dasar service
+### 1. Basic Service Controls
 ```bash
 systemctl status nginx
 systemctl start nginx
@@ -18,7 +18,7 @@ systemctl restart nginx
 systemctl reload nginx
 ```
 
-### 2. Auto-start saat boot
+### 2. Auto-Start on Boot
 ```bash
 systemctl enable nginx
 systemctl disable nginx
@@ -26,35 +26,35 @@ systemctl is-active --quiet nginx
 systemctl is-enabled nginx
 ```
 
-### 3. Cek target/mode boot
+### 3. Check Boot Target / Mode
 ```bash
 systemctl get-default
 systemctl list-units --type=target
 ```
 
-### 4. Reload konfigurasi systemd
+### 4. Reload Systemd Configuration
 ```bash
 sudo systemctl daemon-reload
 ```
 
-### 5. Debugging service yang gagal
+### 5. Debugging Failed Services
 ```bash
 systemctl status nginx
 journalctl -u nginx -xe
 journalctl -u nginx -f
 ```
 
-### 6. Bikin service custom dari nol
+### 6. Creating a Custom Service from Scratch
 
-Simulasi proses long-running yang di-manage systemd — script nulis timestamp ke log tiap 10 detik tanpa henti, dipakai buat latihan bikin unit file dari nol sekaligus nanti buat latihan debugging di section 8.
+Simulating a long-running process managed by systemd—a script that appends timestamps to a log file every 10 seconds indefinitely. This was used to practice building unit files from scratch and to serve as a test case for debugging in section 8.
 
-**Script long-running (`/home/kaks/latihan-systemd/monitor.sh`):**
+**Long-running script (`/home/kaks/latihan-systemd/monitor.sh`):**
 ```bash
 #!/bin/bash
 set -euo pipefail
 
 while true; do
-        echo "$(date): script masih hidup" >> /home/kaks/latihan-systemd/log.txt
+        echo "$(date): script still running" >> /home/kaks/latihan-systemd/log.txt
         sleep 10
 done
 ```
@@ -62,7 +62,7 @@ done
 **Unit file (`/etc/systemd/system/monitor-ky.service`):**
 ```ini
 [Unit]
-Description=monitoring test punya ky
+Description=ky's test monitoring service
 
 [Service]
 ExecStart=/home/kaks/latihan-systemd/monitor.sh
@@ -73,7 +73,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 ```
 
-### 7. Menjalankan & verifikasi service custom
+### 7. Running & Verifying the Custom Service
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl reset-failed monitor-ky.service
@@ -82,41 +82,40 @@ sudo systemctl disable --now monitor-ky.service
 systemctl status monitor-ky.service
 ```
 
-### 8. Debugging service custom yang sengaja dibuat gagal
+### 8. Debugging an Intentionally Failed Custom Service
 ```bash
 tail -f log.txt
 journalctl -u monitor-ky.service -xe
 ```
 
-## 🧩 Catatan
+## 🧩 Key Takeaways
 
-**Proses debugging service yang sengaja dibuat gagal**
+**Debugging an Intentionally Broken Service**
 
-Saya sengaja ubah `ExecStart` di `monitor-ky.service` dari path yang bener (`/home/kaks/latihan-systemd/monitor.sh`) jadi path yang nggak ada (`/home/kaks/latihan-systemd/tidakTersedia`), sebagai latihan proses debugging service yang crash. Pas dicek pakai `tail -f log.txt`, nggak ada baris baru yang masuk (tanda script-nya nggak jalan sama sekali). Baru ketemu akar masalahnya setelah cek `journalctl -u monitor-ky.service -xe` — informasi errornya jelas nunjukin masalah "directory/file not found" karena path di `ExecStart` nggak valid.
+I purposely modified `ExecStart` in `monitor-ky.service` from the correct path (`/home/kaks/latihan-systemd/monitor.sh`) to a non-existent path (`/home/kaks/latihan-systemd/tidakTersedia`) to practice troubleshooting a crashing service. Running `tail -f log.txt` showed no new log entries (indicating the script was not running at all). Pinpointing the root cause was straightforward using `journalctl -u monitor-ky.service -xe`, which clearly logged a "directory/file not found" error due to the invalid `ExecStart` path.
 
-**Baru tau ada konsep unit file `[Unit]`/`[Service]`/`[Install]`**
+**Understanding `[Unit]`, `[Service]`, and `[Install]` Sections**
 
-Sebelumnya saya nggak tau kalau ada config semacam ini yang ngatur gimana suatu script dijalankan sebagai service. Awalnya bingung anatomi tiga section ini (`[Unit]`, `[Service]`, `[Install]`) itu kerjanya gimana dan buat apa masing-masing. Sempat juga susah nerima konsepnya — kayak "masa iya cuma dengan nulis `[Unit]` di satu baris, terus detail di bawahnya, sistem bisa ngerti itu section apa dan kenapa harus dijalankan dengan cara tertentu", padahal itu cuma teks polos yang dipisah per baris. Setelah dipelajari satu-satu, baru paham ini emang cara kerja standar kalau mau bikin suatu script auto-running setiap boot — beda jalur dari `crontab -e` yang sebelumnya saya pakai buat otomasi terjadwal.
+I previously didn't realize that unit files existed to configure how scripts run as background services. At first, the anatomy of these three sections (`[Unit]`, `[Service]`, `[Install]`) felt confusing—it seemed surprising that plain key-value text in a file could instruct systemd to handle a process so specifically. Once broken down step-by-step, it made total sense as the standard Linux method for running boot-persistent services, distinct from scheduled jobs managed via `crontab -e`.
 
-**Baru paham `enable` itu sebenarnya cuma bikin symlink**
+**Demystifying `enable`: It's Just Creating Symlinks**
 
-Awalnya saya kira `systemctl enable` itu semacam tombol ajaib yang langsung "menyalakan" service, mirip klik tombol Run di VSCode buat jalanin file Python. Ternyata yang beneran terjadi di baliknya cuma pembuatan symlink dari unit file ke folder `.wants/` (sesuai target yang ditulis di `WantedBy`) — dan itu cuma ngatur biar service-nya ikut jalan otomatis pas boot berikutnya, bukan langsung menyalakan sekarang juga. Makanya saya pakai `enable --now` di praktik saya, biar sekalian di-enable buat boot berikutnya dan langsung di-start juga saat itu.
+I originally assumed `systemctl enable` acted as a magical switch that immediately started a service, similar to pressing a Run button in an IDE. In reality, all it does under the hood is create a symbolic link (symlink) from the unit file to a `.wants/` directory (defined by `WantedBy`). This configures the service to trigger automatically on the next system boot rather than launching it right away. This is why using `enable --now` is so practical—it enables the service for future boots and starts it immediately in one step.
 
-## 📸 Screenshot
+## 📸 Screenshots
 
-**1. `status` → `enable` → `is-enabled` nginx — pesan `Created symlink` muncul jelas saat `enable`, sesuai insight symlink di Catatan:**
+**1. Running `status` → `enable` → `is-enabled` for Nginx — the `Created symlink` output aligns directly with the symlink concept noted above:**
 
 <img width="1046" height="399" alt="image" src="https://github.com/user-attachments/assets/05bc4e1c-7340-48bc-b999-e3cb4712c6ee" />
 
-**2. Unit file `monitor-ky.service` (isi lengkap 3 section) + status service `active (running)`, proses `monitor.sh` dan `sleep 10` terlihat di CGroup:**
+**2. The `monitor-ky.service` unit file structure alongside an `active (running)` status, displaying both `monitor.sh` and `sleep 10` processes within the CGroup tree:**
 
 <img width="805" height="413" alt="image" src="https://github.com/user-attachments/assets/75646af5-e73a-452f-8c07-ed4078f0de70" />
 
-**3. `log.txt` — bukti `monitor.sh` berjalan terus-menerus, baris baru muncul tiap 10 detik sesuai logika script:**
+**3. Output from `log.txt` verifying that `monitor.sh` runs continuously, appending new timestamps every 10 seconds:**
 
 <img width="527" height="182" alt="image" src="https://github.com/user-attachments/assets/26db9ef8-28a3-4d39-b24f-4cc4224e7fe5" />
 
-**4. Debugging service gagal — `status` menunjukkan `failed (exit-code)`, `journalctl` mengungkap akar masalah (`No such file or directory` karena path `ExecStart` salah), serta terlihat systemd otomatis mencoba restart beberapa kali sesuai `Restart=on-failure`:**
+**4. Debugging the failed service — `status` shows `failed (exit-code)` while `journalctl` exposes the root issue (`No such file or directory` due to the bad `ExecStart` path), as well as systemd's automatic restart attempts per `Restart=on-failure`:**
 
 <img width="1272" height="699" alt="image" src="https://github.com/user-attachments/assets/4bd2c912-5457-4f19-af36-2afcc85c5fd9" />
-
