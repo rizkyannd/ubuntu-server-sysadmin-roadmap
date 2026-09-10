@@ -1,17 +1,18 @@
 # Configure Static IP & Networking
 
-## 🎯 Tujuan
-Mengonfigurasi static IP pada interface jaringan Ubuntu Server menggunakan Netplan, serta memahami tools dasar untuk diagnosa dan monitoring koneksi jaringan.
+## 🧭 Context
+I conducted this hands-on lab to practice static IP addressing and network interface configuration on an Ubuntu Server environment using Netplan. The objective was to transition a server instance from dynamic host allocation (DHCP) to a predictable static network configuration, while leveraging standard Linux CLI diagnostic utilities to inspect routing tables, active sockets, and network boundary connectivity.
 
 ## 🛠️ Environment
-- **Interface:** enp0s3
-- **MAC Address:** 08:00:27:xx:xx:xx
-- **Netplan version:** 2
+- **OS:** Ubuntu Server
+- **Network Interface:** `enp0s3`
+- **MAC Address:** `08:00:27:xx:xx:xx`
+- **Configuration Manager:** Netplan (YAML schema version 2)
 
-## 📋 Konfigurasi Netplan
-**File konfigurasi:** `/etc/netplan/00-installer-config.yaml`
+## 📋 Netplan Configuration
 
-Config awal (default DHCP, dibuat otomatis oleh `subiquity` saat instalasi):
+**Initial Subiquity-generated Configuration (DHCP default):**
+`/etc/netplan/00-installer-config.yaml`
 ```yaml
 # This is the network config written by 'subiquity'
 network:
@@ -25,8 +26,8 @@ network:
   version: 2
 ```
 
-
-Config final (static IP):
+**Final Hardened Configuration (Static Addressing):**
+Modified the schema to assign a explicit CIDR subnet mask, default gateway, and public DNS resolvers:
 ```yaml
 network:
   ethernets:
@@ -42,33 +43,39 @@ network:
   version: 2
 ```
 
-Diterapkan dengan:
+**Applied the changes to the runtime system:**
 ```bash
 sudo netplan apply
 ```
 
-## 🔍 Tools Diagnostik Jaringan yang Dipelajari
+## 🔍 Network Diagnostics Reference
 
-| Command | Fungsi |
+| Utility | Technical Purpose |
 |---|---|
-| `ping google.com` / `ping 8.8.8.8` | Mengecek konektivitas jaringan aktif atau tidak |
-| `traceroute google.com` | Melacak jalur/hop yang dilalui packet menuju tujuan |
-| `netstat -tuln` / `ss -tuln` | Melihat port yang sedang terbuka/listening (`t`=TCP, `u`=UDP, `l`=listening socket, `n`=numeric) |
-| `route -n` | Melihat kernel routing table (jalur keluar/masuk paket) |
-| `nslookup google.com` | Mencari IP address dari sebuah domain (atau sebaliknya) |
-| `ethtool enp0s3` | Melihat detail interface jaringan di level fisik/hardware |
+| `ping -c 4 [TARGET]` | Validates ICMP reachability and link latency to a remote target |
+| `traceroute [TARGET]` | Traces layer 3 packet hop-by-hop pathing toward a destination |
+| `ss -tuln` / `netstat -tuln` | Displays active listening sockets (`t`=TCP, `u`=UDP, `l`=listening, `n`=numeric IP/port) |
+| `ip route` / `route -n` | Inspects kernel routing table entries and default gateway assignments |
+| `nslookup [DOMAIN]` | Queries configured DNS resolvers for domain-to-IP resolution |
+| `ethtool [INTERFACE]` | Queries Physical Layer (L1/L2) interface hardware attributes and link state |
 
-## ⚙️ Verifikasi
+## ⚙️ Verification
 ```bash
-ip a                    # Cek IP address aktif di interface
-ping -c 4 8.8.8.8        # Tes konektivitas ke internet
+ip a                # Confirmed assigned static address 192.168.1.73/24 on enp0s3
+ping -c 4 8.8.8.8   # Validated external L3 ICMP outbound connectivity
 ```
 
-## 🧩 Catatan
-Config Netplan awal masih menggunakan DHCP (default hasil instalasi). Proses perubahan ke static IP berjalan lancar tanpa kendala teknis. 
+## 🧩 Key Takeaways
 
-Namun ditemukan pemahaman baru: static IP (`192.168.1.73`) yang di-set berdasarkan gateway WiFi rumah hanya berfungsi selama VM terhubung ke jaringan yang sama. Saat mencoba menghubungkan VirtualBox ke jaringan hotspot HP (subnet berbeda), koneksi SSH gagal karena IP dan gateway yang di-set tidak sesuai dengan subnet jaringan hotspot tersebut. Ini memperjelas bahwa static IP terikat pada satu jaringan spesifik, berbeda dengan DHCP yang otomatis menyesuaikan saat berpindah jaringan.
+**Static IP Binding vs. Subnet Portability**
 
+Assigning a hardcoded static IP (`192.168.1.73/24` with Gateway `192.168.1.1`) guarantees consistent host accessibility within the home Wi-Fi local area network (LAN). However, switching the VM's bridged network connection to a mobile hotspot network resulted in complete loss of inbound SSH connectivity and outbound routing failures.
 
-## 📸 Screenshot
+This failure mode highlighted a critical networking principle: static IP parameters are explicitly bound to a specific layer 3 broadcast domain and gateway topology. When attached to a foreign network with a different subnet (e.g., `192.168.43.0/24`), the server cannot route traffic through an unreachable gateway (`192.168.1.1`). This demonstrated why infrastructure environments rely on static assignments only within dedicated management subnets or utilize DHCP reservations (MAC-to-IP binding) for portable environments.
+
+## 📸 Screenshots
+
+**1. Netplan execution, static IP verification, and network connectivity testing:**
 <img width="1282" height="854" alt="image" src="https://github.com/user-attachments/assets/bcc9f618-2b1d-40ad-b336-0bac6b4771b4" />
+
+*Verification logs showing Netplan configuration deployment, `ip a` output confirming static IP binding, and successful ICMP response from Google Public DNS.*
