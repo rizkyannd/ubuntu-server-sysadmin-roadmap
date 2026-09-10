@@ -81,6 +81,10 @@ Beyond following steps, these are the parts that involved actual troubleshooting
 
 ---
 
-## Why this project
+## Why This Project?
 
-Certifications show you know the theory. This repo shows the work: setting up a server, breaking things, figuring out why, and fixing them properly — the kind of hands-on troubleshooting that real System Administration work is made of.
+Certifications demonstrate theoretical knowledge, but this repository demonstrates **execution**. 
+
+Rather than following a passive tutorial, this project captures the end-to-end engineering process of building, securing, and maintaining a Linux production-ready baseline. It highlights real-world System Administration work—configuring core services from scratch, diagnosing unexpected system behavior (such as interface-level firewall bypasses), and making deliberate architectural trade-offs.
+
+This repository serves as a verifiable track record of my hands-on technical competence, root-cause troubleshooting capability, and infrastructure documentation standards.
