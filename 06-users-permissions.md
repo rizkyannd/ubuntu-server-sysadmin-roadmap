@@ -7,7 +7,7 @@ I did this step to practice managing multi-user access on a server — creating 
 - **OS:** Ubuntu Server
 - **Tools:** `adduser`, `addgroup`, `usermod`, `deluser`, `chmod`, `chown`, `chgrp`
 
-## 📋 What I Practiced
+## 📋 Hands-On Practice
 
 **1. Create a new user & group:**
 ```bash
@@ -52,7 +52,7 @@ sudo chmod -t nama-folder
 ls -l tugas
 ```
 
-## 🧩 Notes — Things That Confused Me
+## 🧩 Key Takeaways
 
 **Mixing up permission numbers (4/2/1)**
 
